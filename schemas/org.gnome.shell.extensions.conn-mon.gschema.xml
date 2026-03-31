@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="conn-mon">
+  <schema id="org.gnome.shell.extensions.conn-mon" path="/org/gnome/shell/extensions/conn-mon/">
+    
+    <key name="target-ip" type="s">
+      <default>'1.1.1.1'</default>
+      <summary>Target IP address for ping</summary>
+      <description>IPv4 or IPv6 address to ping for connectivity monitoring</description>
+    </key>
+    
+    <key name="ping-count" type="i">
+      <default>100</default>
+      <summary>Number of pings to track in history</summary>
+      <description>Total number of ping results to keep in the history buffer (10-500)</description>
+    </key>
+    
+    <key name="ping-interval" type="i">
+      <default>1000</default>
+      <summary>Ping interval in milliseconds</summary>
+      <description>Time between consecutive pings (500, 1000, 2000, 5000, or 10000 ms)</description>
+    </key>
+    
+    <key name="profile" type="s">
+      <default>'auto'</default>
+      <summary>Connection profile</summary>
+      <description>Connection type profile: auto, lan, fiber, wifi-local, wifi-internet, adsl</description>
+    </key>
+    
+    <key name="sound-alerts" type="b">
+      <default>true</default>
+      <summary>Enable sound alerts</summary>
+      <description>Play system sounds on connection drop/restore</description>
+    </key>
+    
+    <key name="show-percentage" type="b">
+      <default>true</default>
+      <summary>Show quality percentage on icon</summary>
+      <description>Display numeric quality percentage as overlay on the indicator icon</description>
+    </key>
+    
+    <key name="graph-update-rate" type="s">
+      <default>'per-ping'</default>
+      <summary>Graph update frequency</summary>
+      <description>How often to update graphs: per-ping or interval</description>
+    </key>
+    
+    <key name="recent-window-size" type="i">
+      <default>5</default>
+      <summary>Size of recent ping window for state detection</summary>
+      <description>Number of most recent pings to consider for drop/restore detection (5-20)</description>
+    </key>
+    
+  </schema>
+</schemalist>

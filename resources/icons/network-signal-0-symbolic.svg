@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .signal-bar { fill: currentColor; opacity: 0.3; }
+      .warning-icon { fill: currentColor; }
+    </style>
+  </defs>
+  
+  <!-- Signal bars - 0 bars (all inactive) -->
+  <rect class="signal-bar" x="2" y="10" width="2" height="4" rx="0.5"/>
+  <rect class="signal-bar" x="5" y="7" width="2" height="7" rx="0.5"/>
+  <rect class="signal-bar" x="8" y="4" width="2" height="10" rx="0.5"/>
+  <rect class="signal-bar" x="11" y="1" width="2" height="13" rx="0.5"/>
+  
+  <!-- Warning X overlay -->
+  <path class="warning-icon" d="M 1,1 L 15,15 M 15,1 L 1,15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>

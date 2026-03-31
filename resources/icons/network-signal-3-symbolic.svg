@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .signal-bar { fill: currentColor; }
+      .signal-bar-inactive { fill: currentColor; opacity: 0.3; }
+    </style>
+  </defs>
+  
+  <!-- Signal bars - 3 bars for good signal -->
+  <rect class="signal-bar" x="2" y="10" width="2" height="4" rx="0.5"/>
+  <rect class="signal-bar" x="5" y="7" width="2" height="7" rx="0.5"/>
+  <rect class="signal-bar" x="8" y="4" width="2" height="10" rx="0.5"/>
+  <rect class="signal-bar-inactive" x="11" y="1" width="2" height="13" rx="0.5"/>
+</svg>
