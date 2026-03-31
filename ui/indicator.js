@@ -29,9 +29,11 @@ export const ConnectionIndicator = GObject.registerClass({
     _init(settings, metadata) {
         super._init(0.0, 'Connection Monitor', false);
         
+        log('ConnMon: Initializing indicator');
+        
         this.settings = settings;
         this.metadata = metadata;
-        this.panel = null;
+        this._panelItem = null;
         
         this.currentState = ConnectionState.HEALTHY;
         this.currentQuality = 100;
@@ -48,7 +50,8 @@ export const ConnectionIndicator = GObject.registerClass({
         this._icon = new St.Icon({
             icon_name: 'network-signal-symbolic',
             style_class: 'system-status-icon',
-            track_hover: true
+            track_hover: true,
+            reactive: true
         });
         
         // Create quality percentage label
@@ -64,8 +67,14 @@ export const ConnectionIndicator = GObject.registerClass({
         
         this.add_child(this._iconContainer);
         
-        // Connect click handlers
-        this.connect('button-press-event', this._onButtonPress.bind(this));
+        // Ensure the actor is reactive
+        this.reactive = true;
+        this.track_hover = true;
+        
+        // Initialize menu immediately for GNOME 50+ compatibility
+        this.menu = this._getOrCreatePanel();
+        
+        log('ConnMon: Indicator UI created');
         
         // Connect settings changes
         this._settingsChangedId = this.settings.connect(
@@ -78,6 +87,8 @@ export const ConnectionIndicator = GObject.registerClass({
         
         // Detect theme
         this._updateThemeVariant();
+        
+        log('ConnMon: Indicator initialized successfully');
     }
     
     /**
@@ -143,7 +154,9 @@ export const ConnectionIndicator = GObject.registerClass({
      */
     _updateTooltip(state, quality, profile) {
         const stateText = StateDescriptions[state] || 'Unknown';
-        this.set_tooltip_text(`${stateText}\nQuality: ${quality}%\nProfile: ${profile}`);
+        const tooltipText = `${stateText}\nQuality: ${quality}%\nProfile: ${profile}`;
+        
+        this.tooltip_text = tooltipText;
     }
     
     /**
@@ -171,29 +184,40 @@ export const ConnectionIndicator = GObject.registerClass({
     }
     
     /**
-     * Handle button press events
-     * @private
+     * Handle button press events — intercept right/middle click only.
+     * Left click is handled by PanelMenu.Button internally to toggle the menu.
      */
-    _onButtonPress(actor, event) {
+    vfunc_button_press_event(event) {
         const button = event.get_button();
-        
-        // Left click (button 1) - toggle panel
-        if (button === 1) {
-            if (!this.panel) {
-                this.panel = new ConnectionPanel(this, this.settings);
-                this.menu.addMenuItem(this.panel);
-            }
-            this.menu.toggle();
-            return Clutter.EVENT_STOP;
-        }
-        
-        // Right click (button 3) or Middle click (button 2) - open settings
+        log(`ConnMon: Button press event - button: ${button}`);
+
         if (button === 2 || button === 3) {
+            // Middle or right click opens settings
+            log('ConnMon: Opening settings (middle/right click)');
             this.emit('settings-requested');
             return Clutter.EVENT_STOP;
         }
-        
-        return Clutter.EVENT_PROPAGATE;
+
+        // Left click (button 1) opens the menu - let parent handle it
+        return super.vfunc_button_press_event(event);
+    }
+
+    /**
+     * Handle enter events for hover
+     */
+    vfunc_enter_event(event) {
+        log('ConnMon: Enter event (hover start)');
+        this.add_style_class_name('conn-mon-hover');
+        return super.vfunc_enter_event(event);
+    }
+
+    /**
+     * Handle leave events for hover
+     */
+    vfunc_leave_event(event) {
+        log('ConnMon: Leave event (hover end)');
+        this.remove_style_class_name('conn-mon-hover');
+        return super.vfunc_leave_event(event);
     }
     
     /**
@@ -232,19 +256,26 @@ export const ConnectionIndicator = GObject.registerClass({
             const interfaceSettings = new Gio.Settings({
                 schema: 'org.gnome.desktop.interface'
             });
-            
             const colorScheme = interfaceSettings.get_string('color-scheme');
-            const isDark = colorScheme === 'prefer-dark';
+            this._isDarkTheme = colorScheme === 'prefer-dark';
             
-            // Adjust icon style for theme
-            if (isDark) {
-                this._icon.set_style_class('system-status-icon');
-            } else {
-                this._icon.set_style_class('system-status-icon');
-            }
+            // Use add_style_class_name instead of direct assignment to avoid API issues
+            this._icon.add_style_class_name('system-status-icon');
         } catch (error) {
             log(`ConnMon: Could not detect theme: ${error.message}`);
         }
+    }
+    
+    /**
+     * Get or create the panel menu item
+     * @private
+     */
+    _getOrCreatePanel() {
+        if (!this._panelItem) {
+            this._panelItem = new ConnectionPanel(this, this.settings);
+            this.menu.addMenuItem(this._panelItem);
+        }
+        return this._panelItem;
     }
     
     /**
@@ -256,9 +287,9 @@ export const ConnectionIndicator = GObject.registerClass({
             this._settingsChangedId = null;
         }
         
-        if (this.panel) {
-            this.panel.destroy();
-            this.panel = null;
+        if (this._panelItem) {
+            this._panelItem.destroy();
+            this._panelItem = null;
         }
         
         super.destroy();

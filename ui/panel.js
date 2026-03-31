@@ -4,7 +4,6 @@
  * Displays connection statistics, graphs, and status in the popup panel.
  */
 
-import GObject from 'gi://GObject';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -13,11 +12,11 @@ import { ConnectionState, StateDescriptions } from '../lib/state.js';
 import { AckGraph, LatencyGraph } from './graphs.js';
 
 /**
- * ConnectionPanel - Popup menu with graphs and statistics
+ * ConnectionPanel - Popup menu section with graphs and statistics
  */
-export class ConnectionPanel extends PopupMenu.PopupBaseMenuItem {
-    constructor(indicator, settings) {
-        super({ reactive: false, style_class: 'conn-mon-panel' });
+export class ConnectionPanel extends PopupMenu.PopupMenuSection {
+    _init(indicator, settings) {
+        super._init();
         
         this.indicator = indicator;
         this.settings = settings;

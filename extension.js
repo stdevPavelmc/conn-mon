@@ -24,6 +24,8 @@ import { SoundManager } from './lib/sound.js';
 export default class ConnectionMonitorExtension extends Extension {
     enable() {
         try {
+            log('ConnMon: Starting extension enable');
+            
             // Load settings
             this.settings = this.getSettings();
             
@@ -43,6 +45,8 @@ export default class ConnectionMonitorExtension extends Extension {
             // Add indicator to panel
             Main.panel.addToStatusArea('conn-mon', this.indicator);
             
+            log('ConnMon: Indicator added to panel');
+            
             // Connect signals
             this._signalConnections = [];
 
@@ -53,7 +57,7 @@ export default class ConnectionMonitorExtension extends Extension {
             // Start pinging
             this.pinger.start();
             
-            log('ConnMon: Extension enabled');
+            log('ConnMon: Extension enabled successfully');
         } catch (error) {
             logError(error, 'ConnMon: Failed to enable extension');
             this.disable();
@@ -66,6 +70,8 @@ export default class ConnectionMonitorExtension extends Extension {
     
     disable() {
         try {
+            log('ConnMon: Starting extension disable');
+            
             // Stop pinger
             if (this.pinger) {
                 this.pinger.stop();
@@ -95,7 +101,7 @@ export default class ConnectionMonitorExtension extends Extension {
             this.sound = null;
             this.settings = null;
             
-            log('ConnMon: Extension disabled');
+            log('ConnMon: Extension disabled successfully');
         } catch (error) {
             logError(error, 'ConnMon: Failed to disable extension');
         }
@@ -123,8 +129,8 @@ export default class ConnectionMonitorExtension extends Extension {
             );
             
             // Update panel if it exists
-            if (this.indicator.panel) {
-                this.indicator.panel.update(this.stats, this.state, quality);
+            if (this.indicator._panelItem) {
+                this.indicator._panelItem.update(this.stats, this.state, quality);
             }
         } catch (error) {
             logError(error, 'ConnMon: Error processing ping result');
