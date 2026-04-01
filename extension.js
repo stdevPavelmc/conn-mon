@@ -5,7 +5,7 @@
  * packet loss tracking, and latency graphs.
  * 
  * @author Pavel
- * @version 5.0
+ * @version 6.0
  */
 
 import GLib from 'gi://GLib';

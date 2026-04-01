@@ -3,10 +3,16 @@
  *
  * Real-time graphs for ACK success rate and latency.
  *
- * Uses Clutter.Canvas instead of St.DrawingArea to avoid the
- * cogl_buffer / st_drawing_area_get_context crash that occurs when
- * queue_repaint() is called from outside the compositor repaint cycle.
- * Clutter.Canvas.invalidate() is safe to call at any time.
+ * Uses St.DrawingArea with the 'repaint' signal for Cairo drawing.
+ *
+ * Clutter.Canvas was removed from the public Mutter/GJS bindings in
+ * GNOME Shell 48 as part of the Wayland damage-tracking rewrite.
+ * St.DrawingArea is the correct compositor-safe replacement: it hooks
+ * into the St/Clutter repaint cycle natively and the cogl_buffer crash
+ * that existed in older shells (< 45) no longer occurs.
+ *
+ * Invalidation: call this._drawingArea.queue_repaint() — equivalent to
+ * the old Clutter.Canvas.invalidate(), safe to call from any context.
  */
 
 import GObject from 'gi://GObject';
@@ -23,10 +29,10 @@ function hexToRGBA(hex) {
 }
 
 /**
- * PingGraph — St.Widget hosting a Clutter.Canvas for Cairo drawing.
+ * PingGraph — St.Widget hosting an St.DrawingArea for Cairo drawing.
  *
- * Clutter.Canvas.invalidate() schedules a redraw through the normal
- * frame-clock path, so it's safe to call from ping callbacks / timeouts.
+ * queue_repaint() schedules a redraw through the normal St repaint path,
+ * safe to call from ping callbacks / GLib timeouts.
  */
 export const PingGraph = GObject.registerClass({
     GTypeName: 'ConnMonPingGraph'
@@ -38,73 +44,71 @@ export const PingGraph = GObject.registerClass({
             x_expand: true,
         });
 
-        this.data          = options.data        || [];
-        this.graphType     = options.type        || 'line';
-        this.color         = options.color       || '#3584e4';
-        this.fillColor     = options.fillColor   || '#3584e440';
-        this.maxValue      = options.maxValue    || 100;
-        this.minValue      = options.minValue    || 0;
-        this.showGrid      = options.showGrid    !== false;
-        this.gridColor     = options.gridColor   || '#33333340';
-        this.textColor     = options.textColor   || '#aaaaaa';
-        this.valueFormatter = options.valueFormatter || null;
+        this.data           = options.data             || [];
+        this.graphType      = options.type             || 'line';
+        this.color          = options.color            || '#3584e4';
+        this.fillColor      = options.fillColor        || '#3584e440';
+        this.maxValue       = options.maxValue         || 100;
+        this.minValue       = options.minValue         || 0;
+        this.showGrid       = options.showGrid         !== false;
+        this.gridColor      = options.gridColor        || '#33333340';
+        this.textColor      = options.textColor        || '#aaaaaa';
+        this.valueFormatter = options.valueFormatter   || null;
 
-        // Clutter.Canvas — safe to invalidate() from any context
-        this._canvas = new Clutter.Canvas();
-        this._canvas.connect('draw', this._onDraw.bind(this));
-
-        // Backing actor for the canvas
-        this._canvasActor = new Clutter.Actor({
+        // St.DrawingArea — the GNOME 48+ Wayland-safe Cairo drawing surface.
+        // 'repaint' is emitted by the compositor repaint cycle; queue_repaint()
+        // schedules it safely from any GLib context.
+        this._drawingArea = new St.DrawingArea({
             x_expand: true,
             y_expand: true,
         });
-        this._canvasActor.set_content(this._canvas);
-        this.add_child(this._canvasActor);
+        this._drawingArea.connect('repaint', this._onRepaint.bind(this));
+        this.add_child(this._drawingArea);
 
         // Set initial size
         this.set_size(300, 100);
 
-        // Resize canvas when actor size changes
+        // Resize drawing area when actor size changes
         this.connect('notify::size', this._onSizeChanged.bind(this));
     }
 
     _onSizeChanged() {
         const w = Math.max(1, Math.round(this.width));
         const h = Math.max(1, Math.round(this.height));
-        this._canvas.set_size(w, h);
-        this._canvasActor.set_size(w, h);
-        this._canvas.invalidate();
+        this._drawingArea.set_size(w, h);
+        this._drawingArea.queue_repaint();
     }
 
     set_size(w, h) {
         super.set_size(w, h);
-        if (this._canvas) {
-            this._canvas.set_size(Math.max(1, w), Math.max(1, h));
-            this._canvasActor.set_size(Math.max(1, w), Math.max(1, h));
+        if (this._drawingArea) {
+            this._drawingArea.set_size(Math.max(1, w), Math.max(1, h));
         }
     }
 
     /**
-     * Clutter.Canvas 'draw' signal — cr is always valid here.
+     * St.DrawingArea 'repaint' signal — cr is always valid here.
      */
-    _onDraw(_canvas, cr, width, height) {
+    _onRepaint(area) {
+        const cr = area.get_context();
+        const [width, height] = area.get_surface_size();
         this._doDraw(cr, width, height);
-        // Returning false tells Clutter not to re-emit immediately
-        return false;
+        // Explicit dispose required — GJS does not GC Cairo contexts promptly
+        cr.$dispose();
     }
 
     setData(data) {
         this.data = data;
-        this._canvas.invalidate();
+        this._drawingArea.queue_repaint();
     }
 
     setMaxValue(max) {
         this.maxValue = max;
-        this._canvas.invalidate();
+        this._drawingArea.queue_repaint();
     }
 
     invalidate() {
-        this._canvas.invalidate();
+        this._drawingArea.queue_repaint();
     }
 
     _doDraw(cr, width, height) {
