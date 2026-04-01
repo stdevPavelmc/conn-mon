@@ -59,7 +59,11 @@ export const PingGraph = GObject.registerClass({
         const height = allocation.y2 - allocation.y1;
 
         const cr = this.get_context();
-        this._doDraw(cr, width, height);
+        try {
+            this._doDraw(cr, width, height);
+        } finally {
+            cr.$dispose();
+        }
     }
 
     /**

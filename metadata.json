@@ -2,7 +2,7 @@
   "uuid": "conn-mon@pavel.dev",
   "name": "Connection Monitor",
   "description": "Monitor network connection quality with real-time ping statistics, packet loss tracking, and latency graphs",
-  "version": 3,
+  "version": 4,
   "shell-version": ["50", "51", "52", "53"],
   "url": "https://github.com/pavel/conn-mon",
   "settings-schema": "org.gnome.shell.extensions.conn-mon",

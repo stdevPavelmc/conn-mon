@@ -5,7 +5,7 @@
  * packet loss tracking, and latency graphs.
  * 
  * @author Pavel
- * @version 3.0
+ * @version 4.0
  */
 
 import Gio from 'gi://Gio';
