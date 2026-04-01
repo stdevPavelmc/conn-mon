@@ -70,10 +70,26 @@ export const ConnectionIndicator = GObject.registerClass({
         // Ensure the actor is reactive
         this.reactive = true;
         this.track_hover = true;
-        
-        // Initialize menu immediately for GNOME 50+ compatibility
-        this.menu = this._getOrCreatePanel();
-        
+
+        // GNOME 49+ fix: Remove the Clutter.ClickGesture that intercepts button events
+        // before our button-press-event handlers fire
+        if (this._clickGesture) {
+            this.remove_action(this._clickGesture);
+            this._clickGesture = null;
+        }
+
+        // Connect button-press-event on self and child container so clicks land
+        // regardless of which actor is the hit target under the pointer
+        this._iconContainer.connect('button-press-event', (_actor, event) => {
+            return this._onButtonPress(event);
+        });
+        this.connect('button-press-event', (_actor, event) => {
+            return this._onButtonPress(event);
+        });
+
+        // Initialize panel menu item
+        this._getOrCreatePanel();
+
         log('ConnMon: Indicator UI created');
         
         // Connect settings changes
@@ -184,22 +200,26 @@ export const ConnectionIndicator = GObject.registerClass({
     }
     
     /**
-     * Handle button press events — intercept right/middle click only.
-     * Left click is handled by PanelMenu.Button internally to toggle the menu.
+     * Handle button press events via signal (works on GNOME 49+ / Wayland).
+     * Left click toggles the popup menu; middle/right click opens settings.
      */
-    vfunc_button_press_event(event) {
+    _onButtonPress(event) {
         const button = event.get_button();
         log(`ConnMon: Button press event - button: ${button}`);
 
         if (button === 2 || button === 3) {
-            // Middle or right click opens settings
             log('ConnMon: Opening settings (middle/right click)');
             this.emit('settings-requested');
             return Clutter.EVENT_STOP;
         }
 
-        // Left click (button 1) opens the menu - let parent handle it
-        return super.vfunc_button_press_event(event);
+        // Left click: toggle the popup menu
+        if (button === 1) {
+            this.menu.toggle();
+            return Clutter.EVENT_STOP;
+        }
+
+        return Clutter.EVENT_PROPAGATE;
     }
 
     /**

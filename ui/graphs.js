@@ -260,9 +260,11 @@ export const PingGraph = GObject.registerClass({
 /**
  * AckGraph - Specialized graph for ACK success rate
  */
-export class AckGraph extends PingGraph {
-    constructor() {
-        super({
+export const AckGraph = GObject.registerClass({
+    GTypeName: 'ConnMonAckGraph'
+}, class AckGraph extends PingGraph {
+    _init() {
+        super._init({
             type: 'bar',
             color: '#2ecc71',
             fillColor: '#2ecc7140',
@@ -271,7 +273,7 @@ export class AckGraph extends PingGraph {
             showGrid: true
         });
     }
-    
+
     /**
      * Set ACK data (array of 0/1 values)
      * @param {Array} pingResults - Array of ping result objects
@@ -280,14 +282,16 @@ export class AckGraph extends PingGraph {
         const data = pingResults.map(r => r.success ? 1 : 0);
         this.setData(data);
     }
-}
+});
 
 /**
  * LatencyGraph - Specialized graph for latency over time
  */
-export class LatencyGraph extends PingGraph {
-    constructor() {
-        super({
+export const LatencyGraph = GObject.registerClass({
+    GTypeName: 'ConnMonLatencyGraph'
+}, class LatencyGraph extends PingGraph {
+    _init() {
+        super._init({
             type: 'line',
             color: '#3584e4',
             fillColor: '#3584e440',
@@ -297,18 +301,18 @@ export class LatencyGraph extends PingGraph {
             valueFormatter: (v) => `${Math.round(v)}ms`
         });
     }
-    
+
     /**
      * Set latency data from ping results
      * @param {Array} pingResults - Array of ping result objects
      */
     setFromPingResults(pingResults) {
         const data = pingResults.map(r => r.rtt !== null ? r.rtt : 0);
-        
+
         // Auto-scale max value
         const maxLatency = Math.max(...data.filter(v => v > 0), 100);
         this.setMaxValue(Math.ceil(maxLatency / 10) * 10);
-        
+
         this.setData(data);
     }
-}
+});
