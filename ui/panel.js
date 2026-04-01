@@ -212,7 +212,7 @@ class ConnectionPanel extends PopupMenu.PopupBaseMenuItem {
         this.successfulLabel.set_text(`Successful: ${statsData.successfulPings} (${statsData.packetAckPercent.toFixed(1)}%)`);
         this.failedLabel.set_text(`Failed: ${statsData.failedPings} (${statsData.packetLossPercent.toFixed(1)}%)`);
         this.latencyRangeLabel.set_text(`Latency: ${Math.round(statsData.minLatency)}ms / ${Math.round(statsData.avgLatency)}ms / ${Math.round(statsData.maxLatency)}ms`);
-        this.uptimeLabel.set_text(`Uptime: ${stats.getFormattedUptimeSinceRestore()}`);
+        this.uptimeLabel.set_text(`Uptime: ${this.stats.getFormattedUptimeSinceRestore()}`);
     }
 
     // ------------------------------------------------------------------ //

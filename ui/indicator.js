@@ -294,6 +294,14 @@ export const ConnectionIndicator = GObject.registerClass({
         if (!this._panelItem) {
             this._panelItem = new ConnectionPanel(this, this.settings);
             this.menu.addMenuItem(this._panelItem);
+
+            // Refresh graphs when panel opens so data isn't stale
+            this.menu.connect('open-state-changed', (_menu, isOpen) => {
+                if (isOpen && this._panelItem) {
+                    this._panelItem.ackGraph?.queue_repaint();
+                    this._panelItem.latencyGraph?.queue_repaint();
+                }
+            });
         }
         return this._panelItem;
     }

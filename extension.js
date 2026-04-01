@@ -5,10 +5,9 @@
  * packet loss tracking, and latency graphs.
  * 
  * @author Pavel
- * @version 4.0
+ * @version 5.0
  */
 
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -129,7 +128,7 @@ export default class ConnectionMonitorExtension extends Extension {
             );
             
             // Update panel if it exists
-            if (this.indicator._panelItem) {
+            if (this.indicator._panelItem && this.indicator.menu.isOpen) {
                 this.indicator._panelItem.update(this.stats, this.state, quality);
             }
         } catch (error) {
@@ -171,16 +170,9 @@ export default class ConnectionMonitorExtension extends Extension {
     
     _openSettings() {
         try {
-            const app = Gio.DesktopAppInfo.new('gnome-extensions-app.desktop');
-            if (app) {
-                app.launch([], null);
-            } else {
-                // Fallback: open preferences directly
-                this.openPreferences();
-            }
+            this.openPreferences();
         } catch (error) {
             logError(error, 'ConnMon: Failed to open settings');
-            this.openPreferences();
         }
     }
 }

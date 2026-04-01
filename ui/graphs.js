@@ -54,11 +54,25 @@ export const PingGraph = GObject.registerClass({
      * @private
      */
     _onRepaint() {
+        // Guard: actor must be mapped (visible in the scene graph)
+        if (!this.mapped)
+            return;
+
         const allocation = this.get_allocation_box();
         const width = allocation.x2 - allocation.x1;
         const height = allocation.y2 - allocation.y1;
 
-        const cr = this.get_context();
+        // Guard: must have a real allocation
+        if (width <= 0 || height <= 0)
+            return;
+
+        // get_context() throws if called outside a valid repaint cycle
+        let cr;
+        try {
+            cr = this.get_context();
+        } catch (_) {
+            return;
+        }
         try {
             this._doDraw(cr, width, height);
         } finally {
@@ -72,7 +86,9 @@ export const PingGraph = GObject.registerClass({
      */
     setData(data) {
         this.data = data;
-        this.queue_repaint();
+        // Only repaint if the actor is currently mapped/visible
+        if (this.mapped)
+            this.queue_repaint();
     }
 
     /**
@@ -313,10 +329,11 @@ export const LatencyGraph = GObject.registerClass({
     setFromPingResults(pingResults) {
         const data = pingResults.map(r => r.rtt !== null ? r.rtt : 0);
 
-        // Auto-scale max value
+        // Auto-scale max value without triggering an extra repaint
         const maxLatency = Math.max(...data.filter(v => v > 0), 100);
-        this.setMaxValue(Math.ceil(maxLatency / 10) * 10);
+        this.maxValue = Math.ceil(maxLatency / 10) * 10;
 
+        // Single repaint via setData
         this.setData(data);
     }
 });

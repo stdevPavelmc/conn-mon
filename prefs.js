@@ -149,7 +149,7 @@ export default class ConnectionMonitorPreferences extends ExtensionPreferences {
         
         // Appearance & Alerts group
         const appearanceGroup = new Adw.PreferencesGroup({
-            title: 'Appearance & Alerts',
+            title: 'Appearance &amp; Alerts',
             description: 'Customize visual and audio feedback'
         });
         
