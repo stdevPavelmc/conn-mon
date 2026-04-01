@@ -2,6 +2,11 @@
  * Dropdown Panel Component
  *
  * Displays connection statistics, graphs, and status in the popup panel.
+ *
+ * ConnectionPanel extends PopupBaseMenuItem (a real GObject/St.BoxLayout
+ * subclass) instead of PopupMenuSection.  This avoids both the plain-JS
+ * class restriction on GObject.registerClass() and the removed this.actor
+ * proxy that existed in older GNOME Shell versions.
  */
 
 import GObject from 'gi://GObject';
@@ -9,20 +14,20 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import { ConnectionState, StateDescriptions } from '../lib/state.js';
+import { ConnectionState } from '../lib/state.js';
 import { AckGraph, LatencyGraph } from './graphs.js';
 
-/**
- * ConnectionPanel - Popup menu section with graphs and statistics.
- *
- * In GNOME 45+ PopupMenuSection no longer exposes a separate `this.actor`.
- * We host all custom UI inside a non-interactive PopupBaseMenuItem, which
- * gives us a stable, realised St actor regardless of GNOME version.
- */
 export const ConnectionPanel = GObject.registerClass(
-class ConnectionPanel extends PopupMenu.PopupMenuSection {
+class ConnectionPanel extends PopupMenu.PopupBaseMenuItem {
     _init(indicator, settings) {
-        super._init();
+        super._init({
+            reactive:    false,
+            can_focus:   false,
+            style_class: 'conn-mon-panel-item',
+        });
+
+        // Hide the ornament/icon column that PopupBaseMenuItem reserves on the left
+        this.setOrnament(PopupMenu.Ornament.NONE);
 
         this.indicator = indicator;
         this.settings  = settings;
@@ -30,21 +35,13 @@ class ConnectionPanel extends PopupMenu.PopupMenuSection {
         this.state     = null;
         this.quality   = 100;
 
-        // Non-interactive item that acts as the UI host inside the menu
-        this._item = new PopupMenu.PopupBaseMenuItem({
-            reactive:    false,
-            can_focus:   false,
-            style_class: 'conn-mon-panel-item',
-        });
-        this._item.setOrnament(PopupMenu.Ornament.NONE);
-
-        // Main vertical container
+        // Main vertical container, added directly to this item's actor
         this._box = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
             style_class: 'conn-mon-main-layout',
             x_expand:    true,
         });
-        this._item.add_child(this._box);
+        this.add_child(this._box);
 
         // Build UI sections (these set this.ackGraphContainer etc.)
         this._box.add_child(this._createHeaderSection());
@@ -59,8 +56,6 @@ class ConnectionPanel extends PopupMenu.PopupMenuSection {
         this.latencyGraph.set_size(280, 80);
         this.ackGraphContainer.add_child(this.ackGraph);
         this.latencyGraphContainer.add_child(this.latencyGraph);
-
-        this.addMenuItem(this._item);
     }
 
     // ------------------------------------------------------------------ //
@@ -98,31 +93,28 @@ class ConnectionPanel extends PopupMenu.PopupMenuSection {
             style_class: 'conn-mon-status-box',
         });
 
-        // Status row
         const statusRow = new St.BoxLayout({
             orientation: Clutter.Orientation.HORIZONTAL,
             style_class: 'conn-mon-status-row',
             x_expand:    true,
         });
 
-        this.statusDot = new St.Label({ text: '●', style_class: 'conn-mon-status-dot', style: 'color: #2ecc71;' });
-        this.statusLabel = new St.Label({ text: 'Connection Healthy', style_class: 'conn-mon-status-label', x_expand: true });
-        this.qualityLabel = new St.Label({ text: '100%', style_class: 'conn-mon-quality-label' });
+        this.statusDot   = new St.Label({ text: '●',                   style_class: 'conn-mon-status-dot',   style: 'color: #2ecc71;' });
+        this.statusLabel = new St.Label({ text: 'Connection Healthy',  style_class: 'conn-mon-status-label', x_expand: true });
+        this.qualityLabel= new St.Label({ text: '100%',                style_class: 'conn-mon-quality-label' });
 
         statusRow.add_child(this.statusDot);
         statusRow.add_child(this.statusLabel);
         statusRow.add_child(this.qualityLabel);
 
-        // Profile row
         const profileRow = new St.BoxLayout({ orientation: Clutter.Orientation.HORIZONTAL, style_class: 'conn-mon-profile-row' });
         profileRow.add_child(new St.Label({ text: 'Profile: ', style_class: 'conn-mon-profile-label' }));
         this.profileLabel = new St.Label({ text: 'Auto-detect', style_class: 'conn-mon-profile-value', x_expand: true });
         profileRow.add_child(this.profileLabel);
 
-        // Metrics row
         const metricsRow = new St.BoxLayout({ orientation: Clutter.Orientation.HORIZONTAL, style_class: 'conn-mon-metrics-row' });
-        this.packetLossLabel = new St.Label({ text: 'Packet Loss: 0%', style_class: 'conn-mon-metric' });
-        this.latencyLabel    = new St.Label({ text: 'Avg Latency: 0ms', style_class: 'conn-mon-metric' });
+        this.packetLossLabel = new St.Label({ text: 'Packet Loss: 0%',    style_class: 'conn-mon-metric' });
+        this.latencyLabel    = new St.Label({ text: 'Avg Latency: 0ms',   style_class: 'conn-mon-metric' });
         metricsRow.add_child(this.packetLossLabel);
         metricsRow.add_child(this.latencyLabel);
 
@@ -136,11 +128,19 @@ class ConnectionPanel extends PopupMenu.PopupMenuSection {
         const graphsBox = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL, style_class: 'conn-mon-graphs-box' });
 
         graphsBox.add_child(new St.Label({ text: 'ACK Success Rate', style_class: 'conn-mon-graph-title' }));
-        this.ackGraphContainer = new St.Widget({ layout_manager: new Clutter.BinLayout(), style_class: 'conn-mon-graph-container', x_expand: true });
+        this.ackGraphContainer = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            style_class:    'conn-mon-graph-container',
+            x_expand:       true,
+        });
         graphsBox.add_child(this.ackGraphContainer);
 
         graphsBox.add_child(new St.Label({ text: 'Latency (ms)', style_class: 'conn-mon-graph-title' }));
-        this.latencyGraphContainer = new St.Widget({ layout_manager: new Clutter.BinLayout(), style_class: 'conn-mon-graph-container', x_expand: true });
+        this.latencyGraphContainer = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            style_class:    'conn-mon-graph-container',
+            x_expand:       true,
+        });
         graphsBox.add_child(this.latencyGraphContainer);
 
         return graphsBox;
@@ -172,9 +172,9 @@ class ConnectionPanel extends PopupMenu.PopupMenuSection {
         this.state   = state;
         this.quality = quality;
 
-        const statsData  = stats.getStats();
-        const stateDesc  = state.getStateDescription();
-        const profile    = state.settings ? state.settings.get_string('profile') : 'auto';
+        const statsData = stats.getStats();
+        const stateDesc = state.getStateDescription();
+        const profile   = state.settings ? state.settings.get_string('profile') : 'auto';
 
         this._updateStatus(stateDesc, quality, profile, statsData);
         this._updateGraphs(stats);
