@@ -1,5 +1,7 @@
 # Network Connection Quality Monitor
 
+![Sample image](image.png)
+
 A GNOME Shell extension that monitors your network connection quality in real-time, providing visual feedback through signal strength icons and detailed statistics.
 
 > **Note:** This extension is developed and tested on GNOME 50 / Wayland with Ubuntu 26.04 LTS (development branch).

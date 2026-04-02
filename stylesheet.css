@@ -27,7 +27,7 @@
 }
 
 .conn-mon-settings-btn {
-    icon-size: 14px;
+    -shell-icon-size: 14px;
     padding: 2px;
     border-radius: 4px;
 }

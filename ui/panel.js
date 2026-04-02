@@ -77,8 +77,10 @@ class ConnectionPanel extends PopupMenu.PopupBaseMenuItem {
         }));
 
         const settingsButton = new St.Button({
-            icon_name:   'emblem-system-symbolic',
+            icon_name:   'preferences-system-symbolic',
             style_class: 'conn-mon-settings-btn',
+            width:       16,
+            height:      16,
             track_hover: true,
             x_align:     Clutter.ActorAlign.END,
         });
