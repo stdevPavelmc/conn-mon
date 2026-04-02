@@ -11,7 +11,6 @@ import Gio from 'gi://Gio';
 import St from 'gi://St';
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import { ConnectionState, StateDescriptions } from '../lib/state.js';
 import { QualityLevel } from '../lib/quality.js';
@@ -298,8 +297,12 @@ export const ConnectionIndicator = GObject.registerClass({
             // Refresh graphs when panel opens so data isn't stale
             this.menu.connect('open-state-changed', (_menu, isOpen) => {
                 if (isOpen && this._panelItem) {
-                    this._panelItem.ackGraph?.queue_repaint();
-                    this._panelItem.latencyGraph?.queue_repaint();
+                    if (this._panelItem.ackGraph?.invalidate) {
+                        this._panelItem.ackGraph.invalidate();
+                    }
+                    if (this._panelItem.latencyGraph?.invalidate) {
+                        this._panelItem.latencyGraph.invalidate();
+                    }
                 }
             });
         }
