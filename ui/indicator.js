@@ -5,6 +5,7 @@
  * signal bars icon and quality percentage overlay.
  */
 
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
