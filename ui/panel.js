@@ -15,6 +15,7 @@ import St from 'gi://St';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import { ConnectionState } from '../lib/state.js';
+import { PROFILES } from '../lib/quality.js';
 import { AckGraph, LatencyGraph } from './graphs.js';
 
 export const ConnectionPanel = GObject.registerClass(
@@ -193,7 +194,7 @@ class ConnectionPanel extends PopupMenu.PopupBaseMenuItem {
         this.statusDot.set_style(`color: ${dotColor};`);
         this.statusLabel.set_text(stateDesc);
         this.qualityLabel.set_text(`${quality}%`);
-        this.profileLabel.set_text(profile === 'auto' ? 'Auto-detect' : profile);
+        this.profileLabel.set_text(profile === 'auto' ? 'Auto-detect' : (PROFILES[profile]?.name || profile));
         this.packetLossLabel.set_text(`Packet Loss: ${statsData.packetLossPercent.toFixed(1)}%`);
         this.latencyLabel.set_text(`Avg Latency: ${Math.round(statsData.avgLatency)}ms`);
     }

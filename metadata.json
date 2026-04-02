@@ -1,10 +1,10 @@
 {
-  "uuid": "conn-mon@pavel.dev",
-  "name": "Connection Monitor",
-  "description": "Monitor network connection quality with real-time ping statistics, packet loss tracking, and latency graphs",
-  "version": 6,
-  "shell-version": ["50", "51", "52", "53"],
-  "url": "https://github.com/pavel/conn-mon",
+  "uuid": "conn-mon@stdevpavelmc.github.com",
+  "name": "Network Connection Quality Monitor",
+  "description": "Monitor your network connection quality in real-time with ping statistics, packet loss tracking, and latency graphs",
+  "version": 7,
+  "shell-version": ["50"],
+  "url": "https://github.com/stdevPavelmc/conn-mon",
   "settings-schema": "org.gnome.shell.extensions.conn-mon",
   "icon": "network-workgroup-symbolic",
   "gettext-domain": "conn-mon"

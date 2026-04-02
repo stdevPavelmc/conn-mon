@@ -25,13 +25,14 @@ export const ConnectionIndicator = GObject.registerClass({
         'settings-requested': {}
     }
 }, class ConnectionIndicator extends PanelMenu.Button {
-    _init(settings, metadata) {
+    _init(settings, metadata, extensionPath) {
         super._init(0.0, 'Connection Monitor', false);
         
         log('ConnMon: Initializing indicator');
         
         this.settings = settings;
         this.metadata = metadata;
+        this.extensionPath = extensionPath;
         this._panelItem = null;
         
         this.currentState = ConnectionState.HEALTHY;
@@ -45,12 +46,12 @@ export const ConnectionIndicator = GObject.registerClass({
             track_hover: true
         });
         
-        // Create signal icon
+        // Create signal icon - will be set by _updateIcon
         this._icon = new St.Icon({
-            icon_name: 'network-signal-symbolic',
             style_class: 'system-status-icon',
             track_hover: true,
-            reactive: true
+            reactive: true,
+            icon_size: 16
         });
         
         // Create quality percentage label
@@ -123,29 +124,46 @@ export const ConnectionIndicator = GObject.registerClass({
     }
     
     /**
+     * Get the file path for a signal icon
+     * @param {number} level - Signal level (0-4)
+     * @returns {Gio.File} File object for the icon
+     * @private
+     */
+    _getSignalIconFile(level) {
+        // Clamp level to 0-4 range
+        level = Math.max(0, Math.min(4, level));
+        
+        const iconPath = GLib.build_filenamev([
+            this.extensionPath,
+            'resources',
+            'icons',
+            `network-signal-${level}-symbolic.svg`
+        ]);
+        
+        return Gio.File.new_for_path(iconPath);
+    }
+    
+    /**
      * Update icon based on state and quality
      * @private
      */
     _updateIcon(state, quality) {
-        // Determine number of bars
-        let bars = 4;
-        if (quality >= 90) bars = 4;
-        else if (quality >= 70) bars = 3;
-        else if (quality >= 50) bars = 2;
-        else if (quality >= 30) bars = 1;
-        else bars = 0;
+        // Determine signal level (0-4) based on quality
+        // 0 = no network, 1 = low, 2 = fair, 3 = good, 4 = excellent
+        let signalLevel;
+        if (quality >= 90) signalLevel = 4;
+        else if (quality >= 70) signalLevel = 3;
+        else if (quality >= 50) signalLevel = 2;
+        else if (quality >= 30) signalLevel = 1;
+        else signalLevel = 0;
         
-        // Select icon based on bars
-        let iconName = 'network-signal-symbolic';
-        if (bars < 4 && bars > 0) {
-            iconName = `network-signal-${bars}-symbolic`;
-        } else if (bars === 0) {
-            iconName = 'network-signal-0-symbolic';
-        }
-        
-        this._icon.icon_name = iconName;
+        // Get the icon file and set it as a GIcon
+        const iconFile = this._getSignalIconFile(signalLevel);
+        const gicon = new Gio.FileIcon({ file: iconFile });
+        this._icon.gicon = gicon;
         
         // Apply color based on state/quality
+        // For dark theme, use bright colors; for light theme, use darker colors
         const color = this._getColorForQuality(quality, state);
         this._icon.set_style(`color: ${color};`);
     }
@@ -175,27 +193,53 @@ export const ConnectionIndicator = GObject.registerClass({
     }
     
     /**
-     * Get color for quality level
+     * Get color for quality level, adjusted for theme
      * @private
      */
     _getColorForQuality(quality, state) {
+        // Define colors for dark theme (bright/vibrant colors)
+        const darkThemeColors = {
+            dropped: '#e74c3c',    // Bright red
+            reviving: '#f39c12',   // Bright orange
+            restored: '#2ecc71',   // Bright green
+            excellent: '#2ecc71',  // Bright green
+            good: '#27ae60',       // Green
+            fair: '#f1c40f',       // Yellow
+            poor: '#e67e22',       // Orange
+            critical: '#e74c3c'    // Red
+        };
+        
+        // Define colors for light theme (darker/more saturated colors for visibility)
+        const lightThemeColors = {
+            dropped: '#c0392b',    // Dark red
+            reviving: '#d4840d',   // Dark orange
+            restored: '#27ae60',   // Dark green
+            excellent: '#27ae60',  // Dark green
+            good: '#1e8449',       // Dark green
+            fair: '#d4ac0d',       // Dark yellow/gold
+            poor: '#ca6f1e',       // Dark orange
+            critical: '#c0392b'    // Dark red
+        };
+        
+        const colors = this._isDarkTheme ? darkThemeColors : lightThemeColors;
+        
         // Special colors for specific states
         if (state === ConnectionState.DROPPED) {
-            return '#e74c3c';  // Red
+            return colors.dropped;
         }
         if (state === ConnectionState.REVIVING) {
-            return '#f39c12';  // Orange (recovering)
+            return colors.reviving;
         }
         if (state === ConnectionState.RESTORED) {
-            return '#2ecc71';  // Green (just restored)
+            return colors.restored;
         }
         
         // Normal quality-based colors
-        if (quality >= 90) return '#2ecc71';  // Green
-        if (quality >= 70) return '#27ae60';  // Dark green
-        if (quality >= 50) return '#f1c40f';  // Yellow
-        if (quality >= 30) return '#e67e22';  // Orange
-        return '#e74c3c';  // Red
+        if (quality >= 90) return colors.excellent;
+        if (quality >= 70) return colors.good;
+        if (quality >= 50) return colors.fair;
+        if (quality >= 30) return colors.poor;
+        return colors.critical;
     }
     
     /**

@@ -1,11 +1,11 @@
 /**
- * Connection Monitor - GNOME Shell Extension
+ * Network Connection Quality Monitor - GNOME Shell Extension
  * 
  * Monitor network connection quality with real-time ping statistics,
  * packet loss tracking, and latency graphs.
  * 
- * @author Pavel
- * @version 6.0
+ * @author stdevPavelmc
+ * @version 7.0
  */
 
 import GLib from 'gi://GLib';
@@ -38,7 +38,7 @@ export default class ConnectionMonitorExtension extends Extension {
             this.pinger = new Pinger(this.settings);
             
             // Initialize UI components
-            this.indicator = new ConnectionIndicator(this.settings, this.metadata);
+            this.indicator = new ConnectionIndicator(this.settings, this.metadata, this.path);
             this.indicator.connect('settings-requested', this._openSettings.bind(this));
             
             // Add indicator to panel

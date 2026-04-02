@@ -1,293 +1,236 @@
-# Connection Monitor - GNOME Shell Extension
+# Network Connection Quality Monitor
 
-A comprehensive network connection monitoring extension for GNOME Shell 50+ that tracks ping statistics, packet loss, and latency with real-time visual feedback.
+A GNOME Shell extension that monitors your network connection quality in real-time, providing visual feedback through signal strength icons and detailed statistics.
 
-![Version](https://img.shields.io/badge/version-1.0-blue)
-![GNOME Shell](https://img.shields.io/badge/GNOME_Shell-50%2B-purple)
-![License](https://img.shields.io/badge/license-GPL--3.0-green)
+> **Note:** This extension is developed and tested on GNOME 50 / Wayland with Ubuntu 26.04 LTS (development branch).
+
+![Version](https://img.shields.io/badge/version-7-blue)
+![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-50%2B-green)
+![License](https://img.shields.io/badge/license-GPL--3.0-orange)
 
 ## Features
 
-- **Real-time Ping Monitoring**: Continuously ping a configurable target IP (default: 1.1.1.1)
-- **Connection Quality Scoring**: Weighted combination of packet loss (60%) and latency (40%)
-- **Smart Profile Detection**: Auto-detect connection type or manually select from predefined profiles:
-  - LAN/Ethernet (< 1ms, 100% ack)
-  - Fiber (2-5ms, ≥97% ack)
-  - WiFi Local (3-10ms, ≥95% ack)
-  - WiFi/Tethering (10-40ms, ≥95% ack)
-  - ADSL (70-90ms, ≥95% ack)
-- **Visual Status Indicator**: Hybrid icon with signal bars and quality percentage overlay
-- **Color-coded Status**: Green → Yellow → Orange → Red based on connection quality
-- **Live Graphs**: Real-time ACK success rate and latency graphs with full history
-- **Smart Alerts**: Audible notifications on connection drop/restore using system sounds
-- **State Detection**:
-  - **Problem**: ≥5% failure in recent pings (1/5 failed)
-  - **Dropped**: ≥10% failure in recent pings (2/5 failed) + sound alert
-  - **Reviving**: ≥5% success after drop (1/5 successful)
-  - **Restored**: ≥10% success (2/5 successful) + sound alert
-- **Theme Support**: Automatic adaptation to dark/light GNOME themes
-- **Configurable Settings**: All parameters adjustable via preferences dialog
+### For Everyday Users
 
-## Screenshots
+- **Visual Signal Indicator**: See your connection quality at a glance in the system panel with signal bars (0-4 bars) that change based on connection quality
+- **Color-Coded Status**: 
+  - 🟢 Green = Excellent connection
+  - 🟡 Yellow = Fair connection  
+  - 🟠 Orange = Poor connection
+  - 🔴 Red = Connection dropped or critical
+- **Quick Access Panel**: Click the indicator to open a detailed panel showing:
+  - Current connection status
+  - Quality percentage
+  - Active profile
+  - Packet loss and average latency
+- **Sound Alerts**: Optional audio notifications when connection drops or restores [Planed, not working now]
+- **Theme Support**: Automatically adapts colors for dark and light themes
 
-### Panel Indicator
-The extension displays a signal bars icon in the system panel with optional quality percentage overlay.
+### For Technical Users
 
-### Dropdown Panel
-Click the indicator to view:
-- Current connection status and quality score
-- Active profile (auto-detected or manual)
-- Live ACK success rate graph
-- Live latency graph
-- Detailed statistics (total pings, success/failure counts, latency min/avg/max, uptime)
+- **Real-time Graphs**: 
+  - ACK Success Rate graph showing packet acknowledgment over time
+  - Latency graph displaying response times in milliseconds
+- **Detailed Statistics**:
+  - Total pings sent
+  - Successful vs failed pings with percentages
+  - Latency range (min/avg/max)
+  - Connection uptime tracking
+- **Multiple Connection Profiles**: Optimized settings for different network types
+- **Customizable Settings**: Configure ping intervals, targets, and alert preferences
 
 ## Installation
 
-### Method 1: GNOME Extensions Website (Recommended)
+### From GNOME Extensions Website (Recommended)
 
-1. Visit [extensions.gnome.org](https://extensions.gnome.org/)
-2. Search for "Connection Monitor"
-3. Toggle the switch to install
+1. Visit the [extension page on extensions.gnome.org](https://extensions.gnome.org/extension/XXXX/)
+2. Toggle the switch to install
+3. The extension will appear in your system panel
 
-### Method 2: Manual Installation
+### Manual Installation (Using Make)
+
+For users comfortable with command-line tools, the extension includes a Makefile with convenient commands:
 
 ```bash
-# Clone or download the extension
-cd /home/pavel/Documents/Software/Gnome-extensions/Conn_mon
+# Clone the repository
+git clone https://github.com/stdevPavelmc/conn-mon.git
+cd conn-mon
 
-# Create extension directory
-mkdir -p ~/.local/share/gnome-shell/extensions/conn-mon@pavel.dev
+# Install and enable the extension
+make install
+make enable
 
-# Copy files
-cp -r * ~/.local/share/gnome-shell/extensions/conn-mon@pavel.dev/
-
-# Compile schemas
-glib-compile-schemas ~/.local/share/gnome-shell/extensions/conn-mon@pavel.dev/schemas/
-
-# Restart GNOME Shell (Alt+F2, type 'r', press Enter)
-# Or log out and back in
+# Restart GNOME Shell to activate
+# X11: Alt+F2, type 'r', press Enter
+# Wayland: Log out and log back in
 ```
 
-### Method 3: From Source
+**Additional Make Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Install extension to `~/.local/share/gnome-shell/extensions/` |
+| `make uninstall` | Remove extension files from the system |
+| `make enable` | Enable the extension (use after install) |
+| `make disable` | Disable the extension |
+| `make status` | Show installation and enabled status |
+| `make pack` | Create a ZIP package for uploading to extensions.gnome.org |
+| `make logs` | Follow extension logs in real-time (Ctrl+C to exit) |
+| `make clean` | Remove build artifacts and compiled schemas |
+
+**Quick Workflow Examples:**
 
 ```bash
-# Navigate to extension directory
-cd /home/pavel/Documents/Software/Gnome-extensions/Conn_mon
+# Full installation and activation
+make install && make enable
 
-# Install to local GNOME Shell extensions
-make install  # or manually copy as shown above
+# Update after making changes
+make install
+
+# Check if extension is installed and enabled
+make status
+
+# View live logs for debugging
+make logs
+
+# Complete uninstallation
+make disable && make uninstall
+```
+
+### Manual Installation (Traditional Method)
+
+If you prefer not to use make:
+
+```bash
+# Clone the repository
+git clone https://github.com/stdevPavelmc/conn-mon.git
+cd conn-mon
+
+# Install to local GNOME extensions directory
+mkdir -p ~/.local/share/gnome-shell/extensions/conn-mon@stdevpavelmc.github.com
+cp -r * ~/.local/share/gnome-shell/extensions/conn-mon@stdevpavelmc.github.com/
+
+# Recompile schemas
+glib-compile-schemas ~/.local/share/gnome-shell/extensions/conn-mon@stdevpavelmc.github.com/schemas/
 
 # Enable the extension
-gnome-extensions enable conn-mon@pavel.dev
+gnome-extensions enable conn-mon@stdevpavelmc.github.com
+
+# Restart GNOME Shell (Alt+F2, type 'r', press Enter on X11)
+# Or log out and back in on Wayland
 ```
 
-## Usage
+## How It Works
 
-### Basic Operation
+### Quality Rating System
 
-1. **Enable the extension** via GNOME Extensions app or website
-2. The indicator icon appears in the system panel
-3. Icon color and bars reflect current connection quality
-4. Click the icon to view detailed statistics and graphs
+The extension calculates a quality score (0-100%) based on two main factors:
 
-### Interactions
+1. **Packet Loss** (40% weight): The percentage of packets that fail to receive a response
+2. **Latency** (60% weight): The average response time from the target server
 
-| Action | Result |
-|--------|--------|
-| **Left-click** | Open/close dropdown panel |
-| **Right-click** | Open settings dialog |
-| **Middle-click** | Open settings dialog |
-| **Hover** | Tooltip with status summary |
+The formula uses power decay functions for both metrics, meaning quality degrades exponentially as values deviate from expected baselines. This approach ensures that small deviations have minimal impact while larger deviations are penalized more severely.
 
-### Settings
+#### Quality Thresholds
 
-Access settings via right-click or GNOME Extensions app:
+| Quality Score | Signal Bars | Description |
+|---------------|-------------|-------------|
+| 90-100% | 4 bars | Excellent - Perfect for all applications |
+| 70-89% | 3 bars | Good - Suitable for streaming and video calls |
+| 50-69% | 2 bars | Fair - Acceptable for browsing, may affect real-time apps |
+| 30-49% | 1 bar | Poor - Basic connectivity only |
+| 0-29% | 0 bars | Critical - Connection essentially unusable |
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **Target IP** | `1.1.1.1` | IP address to ping |
-| **Ping Count** | 100 | History size (10-500) |
-| **Ping Interval** | 1 second | Time between pings |
-| **Profile** | Auto-detect | Connection type profile |
-| **Recent Window Size** | 5 | Pings for drop/restore detection |
-| **Show Percentage** | Enabled | Display % on icon |
-| **Sound Alerts** | Enabled | Play sounds on state changes |
-| **Graph Update Rate** | Per-ping | Graph refresh frequency |
+### Connection Profiles
+
+The extension includes several pre-configured profiles optimized for different network types:
+
+| Profile | Description | Expected Latency |
+|---------|-------------|------------------|
+| **Auto-detect** | Automatically detects connection type based on observed latency | Dynamic |
+| **LAN Ethernet** | Wired local network connection | ~1ms |
+| **Fiber** | Fiber ISP connection | ~5ms |
+| **WiFi Local** | Local WiFi network (same LAN) | ~10ms |
+| **WiFi/Tethering** | Internet via WiFi or mobile tethering | ~40ms |
+| **ADSL** | DSL ISP connection | ~90ms |
+| **Public/Bad WiFi** | Public or congested WiFi networks | ~300ms |
+
+Each profile adjusts the quality calculation thresholds based on the expected latency characteristics of that connection type, ensuring accurate quality assessment regardless of your network technology.
+
+### Why These Weights?
+
+The 60/40 split (latency/packet loss) was chosen because:
+
+1. **Latency is more perceptible**: Users notice high latency immediately in daily use
+2. **Profile-aware scoring**: Each connection profile has different expected latency baselines, making latency a more meaningful metric
+3. **Power decay functions**: Both metrics use exponential degradation, so severe packet loss still significantly impacts the overall score
 
 ## Configuration
 
-### Profile Selection
+Access settings by:
+- Right-clicking or middle-clicking the panel indicator
+- Using GNOME Extensions app
+- Via the gear icon in the extension's dropdown panel
 
-**Auto-detect Mode:**
-- Extension measures baseline latency over first 10 pings
-- Automatically selects best-matching profile
-- Adapts if you switch connection types
+### Key Settings
 
-**Manual Mode:**
-- Select specific profile for your connection type
-- Useful for consistent monitoring criteria
-- Recommended for troubleshooting specific connection types
-
-### Quality Calculation
-
-Quality score (0-100%) is calculated as:
-
-```
-Quality = (PacketScore × 0.6) + (LatencyScore × 0.4)
-
-Where:
-- PacketScore = Packet ACK percentage (0-100)
-- LatencyScore = max(0, 100 - (avgLatency / profileMaxLatency × 100))
-```
-
-### State Transitions
-
-```
-                    ≥5% failure
-    Healthy ─────────────────────▶ Problem
-      ▲                              │
-      │                              │ ≥10% failure
-      │                              ▼
-      │                            Dropped ──▶ [Sound: Disconnect]
-      │                              │
-      │                              │ ≥5% success
-      │                              ▼
-      │                           Reviving
-      │                              │
-      │                              │ ≥10% success
-      │                              ▼
-      └────────────────────────── Restored ──▶ [Sound: Connect]
-                    (back to Healthy with good stats)
-```
-
-## Troubleshooting
-
-### Extension Not Showing
-
-1. Check if extension is enabled: `gnome-extensions list --enabled`
-2. Restart GNOME Shell (Alt+F2, 'r', Enter)
-3. Check for errors: `journalctl -f | grep -i connmon`
-
-### No Sound Alerts
-
-1. Verify system sound is enabled
-2. Check "Sound Alerts" setting in extension preferences
-3. Ensure system sound theme is installed
-
-### Inaccurate Latency Readings
-
-1. Try a different target IP (e.g., 8.8.8.8 or your gateway)
-2. Increase ping interval to reduce load
-3. Check if target IP is responding correctly: `ping -c 10 <target-ip>`
-
-### High CPU Usage
-
-1. Increase ping interval (2s, 5s, or 10s)
-2. Reduce ping count history (50 instead of 100)
-3. Disable graphs if not needed
-
-### Graphs Not Updating
-
-1. Check if pings are succeeding (view packet loss in panel)
-2. Restart extension: `gnome-extensions disable conn-mon@pavel.dev && gnome-extensions enable conn-mon@pavel.dev`
-3. Check journalctl for errors
-
-## Technical Details
-
-### File Structure
-
-```
-Conn_mon/
-├── extension.js              # Main extension entry point
-├── prefs.js                  # Settings UI
-├── metadata.json             # Extension metadata
-├── stylesheet.css            # Visual styles
-├── schemas/
-│   └── org.gnome.shell.extensions.conn-mon.gschema.xml
-├── lib/
-│   ├── pinger.js             # Ping monitoring with circular buffer
-│   ├── stats.js              # Statistics aggregation
-│   ├── quality.js            # Quality calculation with profiles
-│   ├── state.js              # State machine for drop/restore
-│   └── sound.js              # Sound alert manager
-├── ui/
-│   ├── indicator.js          # Panel indicator component
-│   ├── panel.js              # Dropdown panel with graphs
-│   └── graphs.js             # Cairo-based graph rendering
-└── resources/
-    └── icons/                # Symbolic SVG icons
-```
-
-### Dependencies
-
-- GNOME Shell 50+
-- GSettings (dconf) for configuration
-- System `ping` command
-- GSound/Canberra for audio alerts (optional)
-
-### Performance
-
-- CPU usage: < 1% average (at 1s interval)
-- Memory: ~5MB resident
-- Ping history: Fixed-size circular buffer (configurable)
+- **Ping Target**: The server to ping (default: 8.8.8.8 - Google DNS)
+- **Ping Interval**: How often to send pings (default: 2 seconds)
+- **Show Percentage**: Display quality percentage next to the icon
+- **Sound Alerts**: Play sounds on connection changes (not working yet)
+- **Profile**: Select or auto-detect connection type
 
 ## Development
 
 ### Building from Source
 
 ```bash
-# Navigate to source directory
-cd /home/pavel/Documents/Software/Gnome-extensions/Conn_mon
+# Install and enable the extension
+make install && make enable
 
-# Compile schemas
-glib-compile-schemas schemas/
-
-# Install locally
-make install
-
-# Or package for extensions.gnome.org
+# Create a distributable ZIP package for extensions.gnome.org
 make pack
+
+# View extension logs for debugging
+make logs
+
+# See all available commands
+make help
 ```
 
-### Testing
+### Reporting Issues
 
-```bash
-# Enable extension
-gnome-extensions enable conn-mon@pavel.dev
-
-# View logs
-journalctl -f -o cat | grep -i connmon
-
-# Disable extension
-gnome-extensions disable conn-mon@pavel.dev
-```
+Please report bugs and feature requests on the [GitHub Issues page](https://github.com/stdevPavelmc/conn-mon/issues).
 
 ### Contributing
 
+Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+3. Submit a pull request
 
 ## License
 
-This extension is released under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details.
+This extension is released under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Credits
 
-- GNOME Shell documentation and API reference
-- GNOME Extensions ecosystem contributors
-- Network monitoring tools that inspired this extension
+Developed by [stdevPavelmc](https://github.com/stdevPavelmc).
 
-## Support
+Special thanks to the GNOME Shell extension community for the excellent documentation and examples.
 
-- **Issues**: Report bugs and feature requests via GNOME Extensions or GitHub
-- **Discussions**: GNOME Forums, Reddit r/gnome
-- **Documentation**: See this README and inline code comments
+## Changelog
+
+### Version 7
+- Updated metadata for publication
+- Improved icon sizing in panel header
+- Added comprehensive documentation
+
+### Version 6
+- Initial public release with full feature set
+- SVG icon support with theme adaptation
+- Complete statistics and graphing system
 
 ---
 
-**Version:** 1.0  
-**Author:** Pavel  
-**Last Updated:** 2026-03-31
+**Repository**: https://github.com/stdevPavelmc/conn-mon

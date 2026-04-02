@@ -23,7 +23,7 @@
     <key name="profile" type="s">
       <default>'auto'</default>
       <summary>Connection profile</summary>
-      <description>Connection type profile: auto, lan, fiber, wifi-local, wifi-internet, adsl</description>
+      <description>Connection type profile: auto, lan, fiber, wifi-local, wifi-internet, wifi-public, adsl</description>
     </key>
     
     <key name="sound-alerts" type="b">

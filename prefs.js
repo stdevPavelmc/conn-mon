@@ -118,11 +118,12 @@ export default class ConnectionMonitorPreferences extends ExtensionPreferences {
             model: new Gtk.StringList({
                 strings: [
                     'Auto-detect',
-                    'LAN/Ethernet (< 1ms, 100% ack)',
-                    'Fiber (2-5ms, ≥97% ack)',
-                    'WiFi Local (3-10ms, ≥95% ack)',
-                    'WiFi/Tethering (10-40ms, ≥95% ack)',
-                    'ADSL (70-90ms, ≥95% ack)'
+                    'LAN/Ethernet (≤1ms)',
+                    'Fiber (≤5ms)',
+                    'WiFi Local (≤10ms)',
+                    'WiFi/Tethering (≤40ms)',
+                    'Public/Bad WiFi (≤300ms)',
+                    'ADSL (≤90ms)'
                 ]
             })
         });
@@ -133,9 +134,10 @@ export default class ConnectionMonitorPreferences extends ExtensionPreferences {
             'fiber': 2,
             'wifi-local': 3,
             'wifi-internet': 4,
-            'adsl': 5
+            'wifi-public': 5,
+            'adsl': 6
         };
-        const profileReverse = ['auto', 'lan', 'fiber', 'wifi-local', 'wifi-internet', 'adsl'];
+        const profileReverse = ['auto', 'lan', 'fiber', 'wifi-local', 'wifi-internet', 'wifi-public', 'adsl'];
         
         profileRow.selected = profileMap[settings.get_string('profile')] || 0;
         
